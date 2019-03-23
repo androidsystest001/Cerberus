@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mugen - Pareto analysis ABC - Research</title>
+
+<link rel="stylesheet" href="css/bootstrap.min.css"></link>
+
+<script src="libs/jquery-3.3.1.min.js"></script>
+<script src="libs/highcharts.js"></script>
+<script src="libs/pareto.js"></script>
+
+</head>
+
+<body>
+    <div class="">
+        <div class="card">
+            <div class="card-header">
+                Google keyword: Pareto analysis ABC classification
+            </div>
+
+            <div class="card-body">
+
+                <div class="input-group mb-1">
+                    <p>Yêu cầu: dựa vào biểu đồ Pareto add thêm tính năng vẽ cột phân chia theo rank A,B,C. 
+                        rank ABC thì user có thể  input, ví dụ:
+                    </p>
+                    <ul>
+                        <li>rankA = 75%, nghĩa là những sản phẩm mà có "Cumulative Ratio" <= 75% là đối tượng.</li>
+                        <li>rankB = 85%, nghĩa là những sản phẩm mà có "Cumulative Ratio" > 75% && <= 85% là đối tượng.</li>
+                        <li>rankC = 85%, nghĩa là những sản phẩm mà có "Cumulative Ratio" > 85% là đối tượng.</li>
+                    </ul>
+                    <p>
+                        Chart bên dưới thì đang sử dụng "Plot bands" để vẽ thử xem độ khả thi. Thực tế chỉ cần đường line dọc như image dưới, chứ không cần background
+                    </p>
+                    <p>
+                        Có thể sử dụng "Plot lines" để thay thế (hay cái nào được thì xài), quan trọng là cần tính toán được position (từ product nào -> product nào) dựa theo rank A,B,C đã input để vẽ.
+                    </p>
+                    <a href="https://www.highcharts.com/docs/chart-concepts/plot-bands-and-plot-lines" target="_blank">https://www.highcharts.com/docs/chart-concepts/plot-bands-and-plot-line</a>
+                </div>
+
+                <div class="input-group mb-1">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon3">Rank A (%)</span>
+                    </div>
+                    <input type="number" min="0" max="100" class="form-control" value="75" id="rankA" aria-describedby="basic-addon3">
+                </div>
+                <div class="input-group mb-1">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon3">Rank B (%)</span>
+                    </div>
+                    <input type="number" min="0" max="100"  class="form-control" value="85" id="rankB" aria-describedby="basic-addon3">
+                </div>
+                <div class="input-group mb-1">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon3">Rank C (%)</span>
+                    </div>
+                    <input type="number" min="0" max="100"  class="form-control" value="85" id="rankC" aria-describedby="basic-addon3">
+                </div>
+
+                <div class="input-group mb-1">
+                    <button type="button" id="btnPreview" class="btn btn-primary">Preview</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="container">
+        <div class="card-body">
+            <div id="chartContainer"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card-body">
+            <div>Image Sample</div>
+            <ul>
+                <li>chỉ cần vẽ được đường line dọc, không cần đường line ngang, vẽ dài từ trên -> dưới (không cần phải dụng đường pareto là dừng lại như sample)</li>
+                <li>nhưng label (A, B, C) thì chắc là cần để ở top như chart demo trên..</li>
+            </ul>
+            <img src="img/1.png" />
+        </div>
+    </div>
+
+    <script src="scripts/index.js"></script>
+</body>
+
+</html> 
