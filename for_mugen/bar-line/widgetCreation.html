@@ -1,0 +1,707 @@
+<section class="filter-area">
+	<small>{{'dashboard.settingMenu'|translate}}: </small>
+	<button data-ng-click="defaultSearch($event);" class="fa fa-search" data-ng-disabled="previousScreen == 'UP.Dashboard' || isNewWidget">{{'dashboard.pddefaultsearch'|translate}} </button>
+	<button data-ng-click="tableSettings($event);" class="fa fa-table" data-ng-disabled="previousScreen == 'UP.Dashboard' || isNewWidget">{{'dashboard.pdDataTable'|translate}} </button>
+	<button data-ng-click="advanceSearch($event);" class="fa fa-filter" data-ng-disabled="previousScreen == 'UP.Dashboard' || isNewWidget">{{'dashboard.pdAdvancesearch'|translate}} </button>
+	<button class="fa fa-font" disabled>{{'dashboard.pdDescription'|translate}} </button>
+</section>
+<div class="container widgetcreation">
+	<main class="main" role="main">
+		<form>
+			<div class="page-header">
+				<h2 title="{{pageInfo.page_name}}" data-ng-bind="pageInfo.page_name"></h2>
+				<div class="btn-area">
+					<button class="btn-submit" data-ng-if="selectedChartTypeIdx" data-ng-click="saveWidgetCreation($event)">{{'ok'|translate}}</button>
+					<a href="" data-ng-click="gotoDashboard();" class="btn-cancel">{{'cancel'|translate}}</a>
+				</div>
+			</div>
+			<div class="page-title">
+				<h4 data-ng-if="isNewWidget">{{'widget_creation.pagetitle.new'|translate}}</h4>
+				<h4 data-ng-if="!isNewWidget">{{'widget_creation.pagetitle.edit'|translate}}</h4>
+			</div>
+			<section class="chart-create">
+				<section class="basedatamodel">
+					<h3 class="item-label">{{'widget_creation.datamodel'|translate}}</h3>
+					<!-- 2019.06.05 UPD START KIEN-DX TripleDataModelChart Widgetの追加   --> 
+					<!-- <ul class="clearfix" data-ng-if="widgetCreationObj.chart.widgetDefId != 'StaticText'"> --> 
+					<ul class="clearfix" 
+						data-ng-if="widgetCreationObj.chart.widgetDefId != 'StaticText'
+							&& widgetCreationObj.chart.widgetDefId != 'TripleDataModelChart'">
+					<!-- 2019.06.05 UPD END   --> 
+						<li data-ng-repeat="dm in widgetCreationObj.dmObjList">
+							<div>
+								<h3 class="datamodel" data-ng-class="getTitleClassByDmId(dm.dataModelId)" title="{{dm.dataModelName}}">{{dm.dataModelName}}</h3>
+							</div>
+							<nav id="{{'dmDetail'+$index}}" data-ng-style="$index>0 ? {'width': '381px'}:null">
+								<a href="javascript:void(0)" data-ng-click="openAddDataModelWindow($event, dm, $index, false)"><i class="fa fa-random"></i> {{'widget_creation.change'|translate}}</a>
+								<a href="javascript:void(0)" data-ng-click="openFilterWindow('lg', dm.dataModelId)"><i class="fa fa-filter"></i> {{'widget_creation.filter'|translate}}</a>
+								<a href="javascript:void(0)" data-ng-click="confirmEdg(dm.dataModelId)"><img src="../../images/edg-icon-fa.png" alt="edg icon" width="18" height="12" /> {{'datamodellist.edgShort'|translate}}</a>
+								<a href="javascript:void(0)" class="btn-remove" data-ng-click="removeDataModel()" data-ng-if="$index>0"><i class="fa fa-remove"></i> {{'widget_creation.remove'|translate}}</a>
+							</nav>
+						</li>
+						<li data-ng-if="widgetCreationObj.dmObjList.length == 1 && showAddDMBtn" class="adddatamodel">
+							<a href="javascript:void(0)" data-ng-click="openAddDataModelWindow($event, undefined, null, false)"><i class="fa fa-plus"></i> {{'widget_creation.addDataModel'|translate}}</a>
+						</li>
+					</ul>
+				</section>
+				<p class="error" data-ng-if="compositeDataModelError"><i class="fa fa-times-circle"></i>{{'widget_creation.compositedatamodelerror'|translate}}</p>
+				<p class="error" data-ng-if="compositeDataModelMultiMeasureError"><i class="fa fa-times-circle"></i>{{'widget_creation.compositedatamodelMultiMeasureError'|translate}}</p>
+				<section class="select-charttype" data-ng-class="{'selected': editMode}">
+					<h3 class="item-label">{{'widget_creation.chart_type'|translate}}</h3>
+					<nav>
+						<a href="javascript:void(0)" data-ng-click="selectedChartTypeIdx=null;showAddDMBtn=true;editMode=false;" class="btn-changechart"><i class="fa fa-arrow-left"></i>{{'widget_creation.change_chart_type'|translate}}</a>
+						<!-- パフォーマンス改善対応 -->
+						<a href="javascript:void(0)" id="widgetPreview" class="btn-preview" data-ng-click="openAddDataModelWindow($event, undefined, undefined, true)">{{'widget_creation.preview'|translate}}</a>
+					</nav>
+					<div class="chartcategory">
+						<fieldset>
+							<span>
+								<input id="chrCatRecommend" type="radio" value="recommend" name="chrCat" checked="" />
+								<label for="chrCatRecommend" data-ng-click="setChartCategory('recommend')"><i class="fa fa-thumbs-up"></i> &nbsp;{{'widget_creation.recommend'|translate}}</label>
+							</span>
+							<span>
+								<input id="chrCatAll" type="radio" value="all" name="chrCat" checked="checked"/>
+								<label for="chrCatAll" data-ng-click="setChartCategory('all')"> {{'widget_creation.all'|translate}}</label>
+							</span>
+							<span class="chart-group-list" data-ng-repeat="chart_group in data.categoryList">
+								<input id="{{'chrCat'+$index}}" type="radio" value="{{chart_group.categoryId}}" name="chrCat" />
+								<label for="{{'chrCat'+$index}}" data-ng-click="setChartCategory(chart_group.categoryId)"><i class="{{chart_group.categoryIcon}}"></i>&nbsp;{{chart_group.categoryName}}</label>
+							</span>
+						</fieldset>
+					</div>
+					<div class="chartlist">
+						<ul>
+							<li data-ng-click="selectChartList(chart_tile, $event)" data-ng-repeat="chart_tile in data.widgetList"
+								data-ng-show="(chart_category == 'all' || chart_category == chart_tile.categoryId || chart_category == chart_tile.recommendedId)
+									&& (widgetCreationObj.dmObjList.length == 1
+										&& (
+											(widgetCreationObj.dmObjList[0].dataModelRepositoryId && !(widgetCreationObj.dmObjList[0].isSearchIndexDataModel && (chart_tile.defId == 'ScatterPlot' || chart_tile.defId == 'ScatterPlotWithPlot')))
+											|| (!widgetCreationObj.dmObjList[0].dataModelRepositoryId && chart_tile.isMultiDataModelSupport == 'false'
+													&& chart_tile.defId != 'TimeSeries'
+													&& chart_tile.defId != 'DocumentSearchResult'
+													&& chart_tile.defId != 'SlideShow'
+													&& chart_tile.defId != 'Histogram'
+													&& chart_tile.defId != 'HistogramWithPlot'
+													&& chart_tile.defId != 'ParetoChart'
+													&& chart_tile.defId != 'ScatterPlot'
+													&& chart_tile.defId != 'ScatterPlotWithPlot'
+													&& chart_tile.defId != 'HorizontalHistogram'
+													&& chart_tile.defId != 'SampleLineChart'
+													&& chart_tile.defId != 'CrossJoinedVerticalStackedPercentBarChart'
+													&& chart_tile.defId != 'WeibullChart')
+											|| (widgetCreationObj.dmObjList[0].hasMugenStorage && !(widgetCreationObj.dmObjList[0].isSearchIndexDataModel && (chart_tile.defId == 'ScatterPlot' || chart_tile.defId == 'ScatterPlotWithPlot')))
+										)
+									|| (widgetCreationObj.dmObjList.length == 2 && chart_tile.isMultiDataModelSupport == 'true'))"
+								 data-ng-if="chart_tile.defId!='TextNavigator' && chart_tile.defId!='HorizontalTextNavigator'"
+								 data-ng-class="{'selected':selectedChartTypeIdx==chart_tile.defId}">
+								<h5><small>{{chart_tile.categoryId}}</small>{{chart_tile.defName}}</h5>
+
+								<div class="chartType">
+									<img alt="Charts" data-ng-src="../../{{chart_tile.thumbnailPath}}" />
+								</div>
+
+								<div data-ng-switch on="chart_tile.defId">
+									<div data-ng-switch-when="PyramidChart">
+										<dl>
+											<dt>{{'widget_creation.segment'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										 </dl>
+										 <dl>
+											<dt>{{'widget_creation.angle'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										 </dl>
+									</div>
+									<div data-ng-switch-when="HorizontalBarChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="HorizontalGroupedBarChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="HorizontalGroupedMultiMeasureChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="RaderChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="HorizontalStackedBarChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="StaticText"></div>
+									<div data-ng-switch-when="Spacer"></div>
+									<div data-ng-switch-when="RealTimeCount">
+										<dl>
+											<dt>{{'widget_creation.measure'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="CrossTab">
+										<dl>
+											<dt>{{'widget_creation.rowcoloum'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.measure'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="HeatMapWithImage">
+										<dl>
+											<dt>{{'widget_creation.rowcoloum'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.measure'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="GeoMapChart">
+										<dl>
+											<dt>{{'widget_creation.area'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.measure'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="PieChart">
+										<dl>
+											<dt>{{'widget_creation.segment'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.angle'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="DonutChart">
+										<dl>
+											<dt>{{'widget_creation.segment'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.angle'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="CrossJoinedDonutChart">
+										<dl>
+											<dt>{{'widget_creation.segment'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.angle'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="CrossJoinedHorizontalGroupedBarChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="CrossJoinedHorizontalStackedBarChart">
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+									</div>
+									<div data-ng-switch-when="MultiListNavigator"></div>
+									<div data-ng-switch-when="HorizontalMultiListNavigator"></div>
+									<div data-ng-switch-default>
+										<dl>
+											<dt>{{'widget_creation.xaxis'|translate}}</dt>
+											<dd>{{chart_tile.dimensions}}</dd>
+										</dl>
+										<dl>
+											<dt>{{'widget_creation.yaxis'|translate}}</dt>
+											<dd>{{chart_tile.measures}}</dd>
+										</dl>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="setting-chart" data-ng-include="" src="chartTemplateUrl"></section>
+			</section>
+		</form>
+	</main>
+</div>
+<div class="wrapper-shadow" style="display: none;" data-ng-click="closeWrapperShadow($event)">
+	<section class="selectdatamodel" style="display: none;">
+		<!---->
+		<header class="headerarea">
+			<h2>{{'widget_creation.datamodelList'|translate}}</h2>
+			<div class="btn-area">
+				<a href="#" data-ng-click="closeWrapperShadow($event)" class="btn-cancel">{{'cancel'|translate}}</a>
+			</div>
+		</header>
+		<section class="datamodellist">
+			<fieldset class="{{pageDataModelError}}">
+				<p class="error"><i class="fa fa-times-circle"></i> {{'DashBoard_creation.SelectadataModel..'|translate}} </p>
+			</fieldset>
+
+			<!-- datamodellist -->
+			<table>
+				<thead>
+					<tr>
+						<th class="title">{{'datamodellist.datamodelname'|translate}}</th>
+						<th class="repository">{{'datamodellist.repository'|translate}}</th>
+						<th class="create-type">{{'datamodellist.creationType'|translate}}</th>
+						<th class="update-date">{{'datamodellist.modifiedDate'|translate}}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<!-- 親フォルダへの移動用アイコンの表示 -->
+					<tr data-ng-if="currentFolderId!='/'" data-ng-click="changeFolderToParent(currentFolderId, $event)">
+						<td class="title">
+							<span class="datamodel folder">..</span>
+						</td>
+						<td class="repository"></td>
+						<td class="create-type"></td>
+						<td class="update-date"></td>
+					</tr>
+
+					<!-- フォルダの表示 -->
+					<tr data-ng-repeat="folder in dmFolderList" data-ng-if="folder.folderParentId==currentFolderId" data-ng-click="changeFolder(folder.folderId, $event)">
+						<td class="title">
+							<span class="datamodel folder">{{folder.folderName}}</span>
+						</td>
+						<td class="repository">&nbsp;</td>
+						<td class="createtype">{{'datamodellist.folder'|translate}}</td>
+						<td class="update-date">{{folder.modifiedDate}}</td>
+					</tr>
+
+					<!-- データモデルの表示 -->
+					<tr data-ng-repeat="dm in dmViewList|orderBy: 'dataModelName'"
+							data-ng-if="dm.folderId == currentFolderId && dm.dataModelId != widgetCreationObj.dmObjList[0].dataModelId && dm.dataModelId != widgetCreationObj.dmObjList[1].dataModelId"
+							data-ng-click="addDataModel(dm)"
+							data-ng-class="{'selected': dm.dataModelId == selectedDMInPopover.dataModelId}">
+
+						<td class="title">
+							<label class="hide">
+								<input type="radio" name="selectDatamodel" data-ng-model="dm.select" value="{{dm.dataModelName}}" data-ng-checked="dm.dataModelId == selectedDm.dataModelId">
+							</label>
+							<span class="datamodel" data-ng-class="getTitleClass(dm.hasStorage)">{{dm.dataModelName}}</span>
+						</td>
+						<td class="repository">
+							<div data-ng-if="dm.dataModelCategoryId=='UNION'" style="display: flex;">
+								<nav class="datamodel" title="{{dm.baseObjectList[0].name}}">{{dm.baseObjectList[0].name}}</nav>&nbsp;&nbsp;
+								<nav class="datamodel" title="{{dm.baseObjectList[1].name}}">{{dm.baseObjectList[1].name}}</nav>
+							</div>
+							<span data-ng-if="dm.dataModelCategoryId=='snapshot'" title='{{dm.originalDataModelNameForSnapshot}}' class="datamodel">{{dm.originalDataModelNameForSnapshot}}</span>
+							<span data-ng-if="dm.dataModelCategoryId=='JOIN'" title='{{dm.dataRepositoryUrl}}' class="datamodel {{dm.iconId | replace2:'/images/dr_':'.png'}}">{{dm.dataRepositoryUrl}}</span>
+							<span data-ng-if="dm.dataModelCategoryId!='UNION' && dm.dataModelCategoryId!='snapshot' && dm.dataModelCategoryId!='JOIN'"
+									title='{{dm.baseObjectList[0].repositoryName}}'
+									class="datamodel {{dm.baseObjectList[0].name}}">{{dm.baseObjectList[0].repositoryName != null ? dm.baseObjectList[0].repositoryName : dm.dataRepositoryUrl}}</span>
+						</td>
+						<td class="create-type">
+							<span data-ng-if="dm.dataModelCategoryId == 'UNION'">{{'datamodellist.compositeUnion'|translate}}</span>
+							<span data-ng-if="dm.dataModelCategoryIdOriginal == 'child'">, {{'datamodellist.child'|translate}}</span>
+							<span data-ng-if="dm.dataModelCategoryId == 'JOIN'">{{'datamodellist.compositeJoin'|translate}}</span>
+							<span data-ng-if="dm.dataModelCategoryId == 'child'">{{'datamodellist.child'|translate}}</span>
+							<span data-ng-if="dm.dataModelCategoryId == 'local'">{{'datamodellist.local'|translate}}</span>
+							<span data-ng-if="dm.dataModelCategoryId == 'server'">{{'datamodellist.server'|translate}}</span>
+							<span data-ng-if="dm.dataModelCategoryId == 'snapshot'">{{'datamodellist.snapshot'|translate}}</span>
+						</td>
+						<!-- <td class="update-date">{{dm.formattedTime | replace1:'.0':''}}</td> -->
+						<td class="update-date">{{dm.lastModifiedDate}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+		<section class="datamodel-profile">
+			<strong class="item-label">{{'widget_creation.setDatamodel'|translate}}</strong>
+			<div data-ng-if="baseDMInPopover.dataModelId">
+				<h3 class="datamodel" data-ng-class="getTitleClass(baseDMInPopover.hasStorage)">{{baseDMInPopover.dataModelName}}</h3>
+				<p>{{baseDMInPopover.description}}</p>
+				<dl>
+					<!-- 接続先 -->
+					<dt>{{'datamodellist.repository'|translate}}</dt>
+					<dd>
+						<nav data-ng-if="baseDMInPopover.dataModelCategoryId=='UNION'">
+							<span class="datamodel" title="{{baseDMInPopover.baseObjectList[0].name}}">{{baseDMInPopover.baseObjectList[0].name}}</span>
+							<span class="datamodel" title="{{baseDMInPopover.baseObjectList[1].name}}">{{baseDMInPopover.baseObjectList[1].name}}</span>
+						</nav>
+
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId=='snapshot'" class="datamodel" title="{{baseDMInPopover.originalDataModelNameForSnapshot}}">{{baseDMInPopover.originalDataModelNameForSnapshot}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId=='JOIN'" class="datamodel {{baseDMInPopover.iconId | replace2:'/images/dr_':'.png'}}" title="{{baseDMInPopover.dataRepositoryUrl}}">{{baseDMInPopover.dataRepositoryUrl}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId!='UNION' && baseDMInPopover.dataModelCategoryId!='snapshot' && baseDMInPopover.dataModelCategoryId!='JOIN'"
+								title='{{baseDMInPopover.baseObjectList[0].repositoryName}}'
+								class="datamodel {{baseDMInPopover.baseObjectList[0].name}}">{{baseDMInPopover.baseObjectList[0].repositoryName != null ? baseDMInPopover.baseObjectList[0].repositoryName : baseDMInPopover.dataRepositoryUrl}}</span>
+					</dd>
+
+					<!-- テーブル／ビュー -->
+					<dt>{{'datamodellist.Table/View'|translate}}</dt>
+					<dd>
+						<span data-ng-if="baseDMInPopover.hasStorage">{{baseDMInPopover.cacheTablename}}</span>
+						<span data-ng-if="!baseDMInPopover.hasStorage">{{baseDMInPopover.tableName}}</span>
+					</dd>
+
+					<!-- 作成方法 -->
+					<dt>{{'datamodellist.creationType'|translate}}</dt>
+					<dd>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId == 'UNION'">{{'datamodellist.compositeUnion'|translate}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryIdOriginal == 'child'">, {{'datamodellist.child'|translate}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId == 'JOIN'">{{'datamodellist.compositeJoin'|translate}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId == 'child'">{{'datamodellist.child'|translate}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId == 'local'">{{'datamodellist.local'|translate}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId == 'server'">{{'datamodellist.server'|translate}}</span>
+						<span data-ng-if="baseDMInPopover.dataModelCategoryId == 'snapshot'">{{'datamodellist.snapshot'|translate}}</span>
+					</dd>
+
+					<!-- フォルダ -->
+					<dt>{{'datamodellist.folder'|translate}}</dt>
+					<dd>
+						<span data-ng-repeat="folder in baseDMInPopover.folderPathAry"
+								class="datamodel folder"
+								title="{{folder}}"
+								style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+								data-ng-init="dirIdx=$index"
+								data-ng-style="{'margin-start': dirIdx==0 ? 0+'px':(10*dirIdx)+'px'}">
+							{{folder}}
+						</span>
+					</dd>
+
+					<!-- 更新日時 -->
+					<!-- <dt>{{'datamodellist.lastModifiedOfDataModel'|translate}}</dt> -->
+					<dt>{{'datamodellist.modified'|translate}}</dt>
+					<dd>{{baseDMInPopover.formattedTime | replace1:'.0':''}}</dd>
+
+					<!-- 更新者 -->
+					<!-- <dt>{{'datamodellist.lastModifierOfDataModel'|translate}}</dt> -->
+					<dt>{{'datamodellist.modifiedBy'|translate}}</dt>
+					<dd>{{baseDMInPopover.createdBy}}</dd>
+
+					<!-- データ件数 -->
+					<dt data-ng-if="baseDMInPopover.hasStorage && baseDMInPopover.affectedRows">{{'datamodellist.count'|translate}}</dt>
+					<dd data-ng-if="baseDMInPopover.hasStorage && baseDMInPopover.affectedRows">{{baseDMInPopover.affectedRows | formatNumber1}}</dd>
+
+					<!-- データ更新日時 -->
+					<dt data-ng-if="baseDMInPopover.hasStorage">{{'datamodellist.lastModifiedOfData'|translate}}</dt>
+					<dd data-ng-if="baseDMInPopover.hasStorage">{{baseDMInPopover.cacheUpdatedDate | replace1:'.0':''}}</dd>
+
+					<!-- データ更新者 -->
+					<dt data-ng-if="baseDMInPopover.hasStorage">{{'datamodellist.lastModifierOfData'|translate}}</dt>
+					<dd data-ng-if="baseDMInPopover.hasStorage">{{baseDMInPopover.cacheUpdateBy}}</dd>
+
+					<!-- ステータス -->
+					<dt data-ng-if="baseDMInPopover.hasStorage">{{'datamodellist.status'|translate}}</dt>
+					<dd data-ng-if="baseDMInPopover.hasStorage">
+						<span data-ng-if="baseDMInPopover.loadingStatus">
+						{{'cachelodingstatus.'+baseDMInPopover.loadingStatus|translate}}
+						<!--
+						{{selectedDm.loadingMode}}
+						{{selectedDm.isCache}}
+						-->
+						</span>
+						<span data-ng-if="!baseDMInPopover.loadingStatus">&nbsp;</span>
+					</dd>
+
+					<!-- フィルタ -->
+					<dt>{{'datamodellist.filter'|translate}}</dt>
+					<dd>
+						<span data-ng-if="baseDMInPopover.queryFilter">{{'datamodellist.filterTrue'|translate}}</span>
+						<span data-ng-if="!baseDMInPopover.queryFilter">{{'datamodellist.filterFalse'|translate}}</span></dd>
+
+					<!-- ダッシュボード -->
+					<!--
+					<dt><i class="fa fa-desktop"></i>ダッシュボード</dt>
+					<dd>あり（<span>3</span>）</dd>
+					-->
+
+					<!-- フィールド数 -->
+					<dt>{{'widget_creation.numberOfFields'|translate}}</dt>
+					<dd>
+						{{baseDMInPopover.fieldDataTypeCountMap.datetime +
+							baseDMInPopover.fieldDataTypeCountMap.decimal +
+							baseDMInPopover.fieldDataTypeCountMap.number +
+							baseDMInPopover.fieldDataTypeCountMap.master +
+							baseDMInPopover.fieldDataTypeCountMap.text}}
+					</dd>
+				</dl>
+				<h5>{{'widget_creation.fieldList'|translate}}:</h5>
+				<ul class="field-list">
+					<li data-ng-if="baseGrpFldsMap.datetime" data-ng-class="{'opened': openedDatetime}" data-ng-click="openedDatetime=!openedDatetime">
+						<strong>{{'dataModelBasic.dateType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedDatetime}">
+							<li data-ng-repeat="datetimeField in baseGrpFldsMap.datetime | orderBy: 'dataModelFieldValue'">{{datetimeField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="baseGrpFldsMap.date" data-ng-class="{'opened': openedDate}" data-ng-click="openedDate=!openedDate">
+						<strong>{{'dataModelBasic.dateOnlyType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedDate}">
+							<li data-ng-repeat="datetimeField in baseGrpFldsMap.date | orderBy: 'dataModelFieldValue'">{{datetimeField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="baseGrpFldsMap.decimal" data-ng-class="{'opened': openedDecimal}" data-ng-click="openedDecimal=!openedDecimal">
+						<strong>{{'dataModelBasic.decimalType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedDecimal}">
+							<li data-ng-repeat="decimalField in baseGrpFldsMap.decimal | orderBy: 'dataModelFieldValue'">{{decimalField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="baseGrpFldsMap.number" data-ng-class="{'opened': openedNumber}" data-ng-click="openedNumber=!openedNumber">
+						<strong>{{'dataModelBasic.numberType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedNumber}">
+							<li data-ng-repeat="numberField in baseGrpFldsMap.number | orderBy: 'dataModelFieldValue'">{{numberField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="baseGrpFldsMap.master" data-ng-class="{'opened': openedMaster}" data-ng-click="openedMaster=!openedMaster">
+						<strong>{{'dataModelBasic.masterType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedMaster}">
+							<li data-ng-repeat="masterField in baseGrpFldsMap.master | orderBy: 'dataModelFieldValue'">{{masterField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="baseGrpFldsMap.text" data-ng-class="{'opened': openedText}" data-ng-click="openedText=!openedText">
+						<strong>{{'dataModelBasic.textType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedText}">
+							<li data-ng-repeat="textField in baseGrpFldsMap.text | orderBy: 'dataModelFieldValue'">{{textField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+				</ul>
+			</div>
+		</section>
+		<section class="datamodel-profile">
+			<strong class="item-label">{{'widget_creation.selectedDatamodel'|translate}}</strong>
+			<div data-ng-if="selectedDMInPopover.dataModelId">
+				<h3 class="datamodel" data-ng-class="getTitleClass(selectedDMInPopover.hasStorage)">{{selectedDMInPopover.dataModelName}}</h3>
+				<p>{{selectedDMInPopover.description}}</p>
+				<div class="">
+					<button class="btn-submit" data-ng-click="finalAddDataModel(selectedDMInPopover.dataModelId)">
+						<span data-ng-if="baseDMInPopover.dataModelId">{{'widget_creation.change'|translate}}</span>
+						<span data-ng-if="!baseDMInPopover.dataModelId">{{'widget_creation.add'|translate}}</span>
+					</button>
+				</div>
+				<dl>
+					<!-- 接続先 -->
+					<!--
+					<dt>接続先</dt>
+					<dd><span class="datamodel mysql">{{selectedDMInPopover.dataModelRepositoryName}}</span></dd>
+					-->
+
+					<dt>{{'datamodellist.repository'|translate}}</dt>
+					<dd>
+						<nav data-ng-if="selectedDMInPopover.dataModelCategoryId=='UNION'">
+							<span class="datamodel" title="{{selectedDMInPopover.baseObjectList[0].name}}">{{selectedDMInPopover.baseObjectList[0].name}}</span>
+							<span class="datamodel" title="{{selectedDMInPopover.baseObjectList[1].name}}">{{selectedDMInPopover.baseObjectList[1].name}}</span>
+						</nav>
+
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId=='snapshot'"
+								class="datamodel"
+								title="{{selectedDMInPopover.originalDataModelNameForSnapshot}}">
+							{{selectedDMInPopover.originalDataModelNameForSnapshot}}
+						</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId=='JOIN'"
+								class="datamodel {{selectedDMInPopover.iconId | replace2:'/images/dr_':'.png'}}"
+								title="{{selectedDMInPopover.dataRepositoryUrl}}">
+							{{selectedDMInPopover.dataRepositoryUrl}}
+						</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId!='UNION' && selectedDMInPopover.dataModelCategoryId!='snapshot' && selectedDMInPopover.dataModelCategoryId!='JOIN'"
+								class="datamodel {{selectedDMInPopover.baseObjectList[0].name}}"
+								title='{{selectedDMInPopover.baseObjectList[0].repositoryName}}'>
+							{{selectedDMInPopover.baseObjectList[0].repositoryName != null ? selectedDMInPopover.baseObjectList[0].repositoryName : selectedDMInPopover.dataRepositoryUrl}}
+						</span>
+
+					</dd>
+
+					<!-- テーブル／ビュー -->
+					<dt>{{'datamodellist.Table/View'|translate}}</dt>
+					<dd>
+						<span data-ng-if="selectedDMInPopover.hasStorage">{{selectedDMInPopover.cacheTablename}}</span>
+						<span data-ng-if="!selectedDMInPopover.hasStorage">{{selectedDMInPopover.tableName}}</span>
+					</dd>
+
+					<!-- 作成方法 -->
+					<dt>{{'datamodellist.creationType'|translate}}</dt>
+					<dd>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId == 'UNION'">{{'datamodellist.compositeUnion'|translate}}</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryIdOriginal == 'child'">, {{'datamodellist.child'|translate}}</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId == 'JOIN'">{{'datamodellist.compositeJoin'|translate}}</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId == 'child'">{{'datamodellist.child'|translate}}</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId == 'local'">{{'datamodellist.local'|translate}}</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId == 'server'">{{'datamodellist.server'|translate}}</span>
+						<span data-ng-if="selectedDMInPopover.dataModelCategoryId == 'snapshot'">{{'datamodellist.snapshot'|translate}}</span>
+					</dd>
+
+					<!-- フォルダ -->
+					<dt>{{'datamodellist.folder'|translate}}</dt>
+					<dd>
+						<span data-ng-repeat="folder in selectedDMInPopover.folderPathAry"
+								class="datamodel folder"
+								title="{{folder}}"
+								style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+								data-ng-init="dirIdx=$index"
+								data-ng-style="{'margin-start': dirIdx==0 ? 0+'px':(10*dirIdx)+'px'}">
+							{{folder}}
+						</span>
+					</dd>
+
+					<!-- 更新日時 -->
+					<!-- <dt>{{'datamodellist.lastModifiedOfDataModel'|translate}}</dt> -->
+					<dt>{{'datamodellist.modified'|translate}}</dt>
+					<dd>{{selectedDMInPopover.formattedTime | replace1:'.0':''}}</dd>
+
+					<!-- 更新者 -->
+					<!-- <dt>{{'datamodellist.lastModifierOfDataModel'|translate}}</dt> -->
+					<dt>{{'datamodellist.modifiedBy'|translate}}</dt>
+					<dd>{{selectedDMInPopover.createdBy}}</dd>
+
+					<!-- データ件数 -->
+					<dt data-ng-if="selectedDMInPopover.hasStorage && selectedDMInPopover.affectedRows">{{'datamodellist.count'|translate}}</dt>
+					<dd data-ng-if="selectedDMInPopover.hasStorage && selectedDMInPopover.affectedRows">{{selectedDMInPopover.affectedRows | formatNumber1}}</dd>
+
+					<!-- データ更新日時 -->
+					<dt data-ng-if="selectedDMInPopover.hasStorage">{{'datamodellist.lastModifiedOfData'|translate}}</dt>
+					<dd data-ng-if="selectedDMInPopover.hasStorage">{{selectedDMInPopover.cacheUpdatedDate | replace1:'.0':''}}</dd>
+
+					<!-- データ更新者 -->
+					<dt data-ng-if="selectedDMInPopover.hasStorage">{{'datamodellist.lastModifierOfData'|translate}}</dt>
+					<dd data-ng-if="selectedDMInPopover.hasStorage">{{selectedDMInPopover.cacheUpdateBy}}</dd>
+
+					<!-- ステータス -->
+					<dt data-ng-if="selectedDMInPopover.hasStorage">{{'datamodellist.status'|translate}}</dt>
+					<dd data-ng-if="selectedDMInPopover.hasStorage">
+						<span data-ng-if="selectedDMInPopover.loadingStatus">
+						{{'cachelodingstatus.'+selectedDMInPopover.loadingStatus|translate}}
+						<!--
+						{{selectedDMInPopover.loadingMode}}
+						{{selectedDMInPopover.isCache}}
+						-->
+						</span>
+						<span data-ng-if="!selectedDMInPopover.loadingStatus">&nbsp;</span>
+					</dd>
+
+					<!-- フィルタ -->
+					<dt>{{'datamodellist.filter'|translate}}</dt>
+					<dd>
+						<span data-ng-if="selectedDMInPopover.queryFilter">{{'datamodellist.filterTrue'|translate}}</span>
+						<span data-ng-if="!selectedDMInPopover.queryFilter">{{'datamodellist.filterFalse'|translate}}</span></dd>
+
+					<!-- ダッシュボード -->
+					<!--
+					<dt><i class="fa fa-desktop"></i>ダッシュボード</dt>
+					<dd>あり（<span>3</span>）</dd>
+					-->
+
+					<!-- フィールド数 -->
+					<dt>{{'widget_creation.numberOfFields'|translate}}</dt>
+					<dd>
+						{{selectedDMInPopover.fieldDataTypeCountMap.datetime +
+							selectedDMInPopover.fieldDataTypeCountMap.decimal +
+							selectedDMInPopover.fieldDataTypeCountMap.number +
+							selectedDMInPopover.fieldDataTypeCountMap.master +
+							selectedDMInPopover.fieldDataTypeCountMap.text}}
+					</dd>
+				</dl>
+				<h5>{{'widget_creation.fieldList'|translate}}:</h5>
+				<ul class="field-list">
+					<li data-ng-if="selectedGrpFldsMap.datetime" data-ng-class="{'opened': openedSlctDttm}" data-ng-click="openedSlctDttm=!openedSlctDttm">
+						<strong>{{'dataModelBasic.dateType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedSlctDttm}">
+							<li data-ng-repeat="slctDttmField in selectedGrpFldsMap.datetime | orderBy: 'dataModelFieldValue'">{{slctDttmField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="baseGrpFldsMap.date" data-ng-class="{'opened': openedDate}" data-ng-click="openedDate=!openedDate">
+						<strong>{{'dataModelBasic.dateOnlyType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedDate}">
+							<li data-ng-repeat="datetimeField in baseGrpFldsMap.date | orderBy: 'dataModelFieldValue'">{{datetimeField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="selectedGrpFldsMap.decimal" data-ng-class="{'opened': openedSlctDcml}" data-ng-click="openedSlctDcml=!openedSlctDcml">
+						<strong>{{'dataModelBasic.decimalType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedSlctDcml}">
+							<li data-ng-repeat="slctDcmlField in selectedGrpFldsMap.decimal | orderBy: 'dataModelFieldValue'">{{slctDcmlField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="selectedGrpFldsMap.number" data-ng-class="{'opened': openedSlctNmbr}" data-ng-click="openedSlctNmbr=!openedSlctNmbr">
+						<strong>{{'dataModelBasic.numberType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedSlctNmbr}">
+							<li data-ng-repeat="slctNmbrField in selectedGrpFldsMap.number | orderBy: 'dataModelFieldValue'">{{slctNmbrField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="selectedGrpFldsMap.master" data-ng-class="{'opened': openedSlctMstr}" data-ng-click="openedSlctMstr=!openedSlctMstr">
+						<strong>{{'dataModelBasic.masterType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedSlctMstr}">
+							<li data-ng-repeat="slctMstrField in selectedGrpFldsMap.master | orderBy: 'dataModelFieldValue'">{{slctMstrField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+					<li data-ng-if="selectedGrpFldsMap.text" data-ng-class="{'opened': openedSlctText}" data-ng-click="openedSlctText=!openedSlctText">
+						<strong>{{'dataModelBasic.textType'|translate}}</strong>
+						<ul data-ng-class="{'opened': openedSlctText}">
+							<li data-ng-repeat="slctTextField in selectedGrpFldsMap.text | orderBy: 'dataModelFieldValue'">{{slctTextField.dataModelFieldValue}}</li>
+						</ul>
+						<i class="fa fa-chevron-down"></i>
+					</li>
+				</ul>
+			</div>
+		</section>
+	</section>
+	<section class="previewchart" style="display: none;">
+		<h2>{{'widget_creation.dm_preview'|translate}}</h2>
+		<a href="javascirpt:void(0)" class="fa fa-close"></a>
+		<!--  パフォーマンス改善対応 -->
+		<!--
+		<div class="chart" id="Vertical_Bar_Chart_prev"></div>
+		-->
+		<div gridster="gridsterOptsForPreview" class="gridster-wrap" data-ng-if="isPreviewChart">
+			<section class="widget-area">
+				<div id="chartPreview"><ul id="chartPreviewZone"></ul></div>
+			</section>
+		</div>
+	</section>
+</div>

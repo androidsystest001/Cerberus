@@ -1,0 +1,582 @@
+<h3 data-ng-controller="TripleDataModelChartConfigCtrl">{{chart_defName}}</h3>
+<div class="widgetoption">
+	<small>{{'charts.settingoptions'|translate}}</small>
+	<input type="checkbox" id="widgetdescription" data-ng-change="toggleDescription(showDescription)" data-ng-model="showDescription" />
+	<label for="widgetdescription">{{'description'|translate}}</label>
+	<input type="checkbox" id="btn-datachain" data-ng-change="toggleDataChain(showDataChain)" data-ng-model="showDataChain">
+	<label for="btn-datachain" >{{'datachain'|translate}}</label>
+</div>
+
+<fieldset class="widgetmeta {{titleError}}"  data-ng-class="{'has-error': htmlTagsInWdgtNameError}">
+	<input id="widgetname" type="text" class="" placeholder="Widget name" data-ng-model="widgetCreationObj.chart.widgetTitle" maxlength="100" />
+	<p class="error" data-ng-if="titleError"><i class="fa fa-times-circle"></i>{{'charts.charttitleisrequired'|translate}}</p>
+	<p class="error" data-ng-if="htmlTagsInWdgtNameError"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+</fieldset>
+
+<fieldset class="widgetmeta {{descriptionError}}" data-ng-show="showDescription" data-ng-class="{'has-error': htmlTagsInWdgtDescError}">
+	<input id="widgetdescription_text" type="text" placeholder="{{'description.placeholder'|translate}}" data-ng-model="widgetCreationObj.chart.widgetDescription" maxlength="1000" />
+	<p class="error" data-ng-if="descriptionError"><i class="fa fa-times-circle"></i>{{'charts.chartdescriptionisrequired'|translate}}</p>
+	<p class="error" data-ng-if="htmlTagsInWdgtDescError"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+</fieldset>
+
+<h4>{{'charts.dimension'|translate}}({{'charts.x-axis'|translate}})</h4>
+dataModelId: {{widgetCreationObj.chart.config.dimension[0].dataModelId}}
+<ul class="setting-xaxis">
+	<li>
+		<fieldset class="fieldselection {{dimension_dataModelSelectionError[0]}}">
+			<label>{{'charts.datamodel-selection'|translate}}</label>
+      		<button data-ng-click="openModalDataModel('DIM')" title="{{widgetCreationObj.chart.config.extraConfigDimensions[0].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigDimensions[0].dataModelName}}</button>
+		</fieldset>
+		
+		<fieldset class="fieldselection {{dimFldError}}">
+			<label>{{'charts.fieldselection'|translate}}</label>
+      		<button data-ng-click="openModalField('DIM')" title="{{dimFieldName[0]}}"
+				data-ng-disabled="!widgetCreationObj.chart.config.extraConfigDimensions[0].dataModelId"
+      			style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">{{dimFieldName[0]}}</button>
+		</fieldset>
+		<fieldset class="{{dimCountError}}">
+			<label>{{'charts.count'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.dimension[0].count" data-ng-options="item.key as item.value for item in countMap">
+				<option value="">{{'charts.#ofpoints'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="{{dimSortError}} {{fasetMeargeByMeasureSortError}}">
+			<label>{{'charts.sort'|translate}}</label>
+			<select data-ng-model="dimensionSort[0]" data-ng-change="setSortOption(dimensionSort[0], 0)" data-ng-options="item.key as item.value for item in sortMap">
+				<option value="">{{'charts.selectsort'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="{{DimFldNameError}}" data-ng-class="{'has-error': htmlTagsInFldNameError}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.dimension[0].dataModelDispVal" maxlength="40" />
+		</fieldset>
+		<p class="error" data-ng-if="!dimension_dataModelSelectionError[0] && dimFldError"><i class="fa fa-times-circle"></i>{{'charts.dimension.field.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="dimCountError"><i class="fa fa-times-circle"></i>{{'charts.dimension.count.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="dimSortError"><i class="fa fa-times-circle"></i>{{'charts.dimension.sort.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="dimFldNameError"><i class="fa fa-times-circle"></i>{{'charts.dimension.fieldname.is.required'|translate}}</p>
+		<p class="warn" data-ng-if="widgetCreationObj.chart.config.dimension[0].count == '-1'"><i class="fa fa-times-circle"></i>{{'charts.dimension_search_index_warning'|translate}}</p>
+		<p class="error" data-ng-if="htmlTagsInFldNameError"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+		<p class="error" data-ng-if="fasetMeargeByMeasureSortError"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fasetMeargeByMeasureSort'|translate}}</p>
+		<p class="warn" data-ng-if="dimNofrmWarning"><i class="fa fa-times-circle"></i>{{dimNoFrmMsg}}</p>
+		
+		<p class="error" data-ng-if="dimension_dataModelSelectionError[0]"><i class="fa fa-times-circle"></i>{{'charts.dimension.datamodel.is.required'|translate}}</p>
+	</li>
+</ul>
+
+<h4>{{'charts.measure'|translate}}({{'charts.y-axis'|translate}})({{'charts.y-axis-datamodel-1'|translate}})</h4>
+dataModelId: {{widgetCreationObj.chart.facetMergeConfig[0].fields[0].dataModelId}}
+<ul class="setting-xaxis">
+	<li>
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[0]}}">
+			<label>{{'charts.datamodel-selection'|translate}}</label>
+      		<button data-ng-click="openModalDataModel('MSR1')" title="{{widgetCreationObj.chart.config.extraConfigFields[0].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[0].dataModelName}}</button>
+		</fieldset>
+	
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[0]}}">
+			<label>{{'charts.aggregateformula'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[0].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[0].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[0].fields[0].aggFunction, 0);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[0]}}">
+			<label>{{'charts.fieldselection'|translate}}</label>
+			<button data-ng-click="openModalField('MSR1')"
+					title="{{msrFieldName[0]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[0].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[0].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[0]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="{{facetMergeConfig_HtmlTagsError[0]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text"
+					data-ng-model="widgetCreationObj.chart.facetMergeConfig[0].display"
+					maxlength="100" />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_LineTypeError[0]}}">
+			<label>{{'charts.LineStyle.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[0].lineType"  data-ng-options="item.key as item.value for item in lineTypeMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		<fieldset class="">
+			<label>{{'charts.roundType.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[0].roundType"
+					data-ng-options="item.key as item.value for item in roundTypeMap">
+				<option value="">{{'charts.roundnot'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="">
+			<label>{{'charts.roundNumberDigits.label'|translate}}</label>
+			<input type="number" data-ng-model="widgetCreationObj.chart.config.extraConfigFields[0].decimalPlaces" maxlength="9"  />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_YAxisError[0]}}">
+			<label>{{'charts.y-axis'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[0].yAxis"
+					data-ng-options="item.key as item.value for item in yAxisMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		
+		<p class="error" data-ng-if="!facetMergeConfig_dataModelSelectionError[0] && facetMergeConfig_FunctionError[0]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[0]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_HtmlTagsError[0]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_LineTypeError[0]"><i class="fa fa-times-circle"></i>{{'charts.measure.lineType.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_YAxisError[0]"><i class="fa fa-times-circle"></i>{{'charts.measure.yAxis.is.required'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[0]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+	</li>
+</ul>
+
+<h4>{{'charts.measure'|translate}}({{'charts.y-axis'|translate}})({{'charts.y-axis-datamodel-2'|translate}})</h4>
+dataModelId: {{widgetCreationObj.chart.facetMergeConfig[1].fields[0].dataModelId}}
+<ul class="setting-xaxis">
+	<li>
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[1]}}">
+			<label>{{'charts.datamodel-selection'|translate}}</label>
+      		<button data-ng-click="openModalDataModel('MSR2')" title="{{widgetCreationObj.chart.config.extraConfigFields[1].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[1].dataModelName}}</button>
+		</fieldset>
+	
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[1]}}">
+			<label>{{'charts.aggregateformula'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[1].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[1].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[1].fields[0].aggFunction, 1);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[1]}}">
+			<label>{{'charts.fieldselection'|translate}}</label>
+			<button data-ng-click="openModalField('MSR2')"
+					title="{{msrFieldName[1]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[1].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[1].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[1]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="{{facetMergeConfig_HtmlTagsError[1]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text"
+					data-ng-model="widgetCreationObj.chart.facetMergeConfig[1].display"
+					maxlength="100" />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_LineTypeError[1]}}">
+			<label>{{'charts.LineStyle.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[1].lineType"  data-ng-options="item.key as item.value for item in lineTypeMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		<fieldset class="">
+			<label>{{'charts.roundType.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[1].roundType"
+					data-ng-options="item.key as item.value for item in roundTypeMap">
+				<option value="">{{'charts.roundnot'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="">
+			<label>{{'charts.roundNumberDigits.label'|translate}}</label>
+			<input type="number" data-ng-model="widgetCreationObj.chart.config.extraConfigFields[1].decimalPlaces" maxlength="9"  />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_YAxisError[1]}}">
+			<label>{{'charts.y-axis'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[1].yAxis"
+					data-ng-options="item.key as item.value for item in yAxisMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		
+		<p class="error" data-ng-if="!facetMergeConfig_dataModelSelectionError[1] && facetMergeConfig_FunctionError[1]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[1]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_HtmlTagsError[1]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_LineTypeError[1]"><i class="fa fa-times-circle"></i>{{'charts.measure.lineType.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_YAxisError[1]"><i class="fa fa-times-circle"></i>{{'charts.measure.yAxis.is.required'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[1]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+	</li>
+</ul>
+
+<h4>{{'charts.measure'|translate}}({{'charts.y-axis'|translate}})({{'charts.y-axis-datamodel-3'|translate}})</h4>
+dataModelId: {{widgetCreationObj.chart.facetMergeConfig[2].fields[0].dataModelId}}
+<ul class="setting-xaxis">
+	<li>
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[2]}}">
+			<label>{{'charts.datamodel-selection'|translate}}</label>
+      		<button data-ng-click="openModalDataModel('MSR3')" title="{{widgetCreationObj.chart.config.extraConfigFields[2].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[2].dataModelName}}</button>
+		</fieldset>
+	
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[2]}}">
+			<label>{{'charts.aggregateformula'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[2].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[2].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[2].fields[0].aggFunction, 2);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[2]}}">
+			<label>{{'charts.fieldselection'|translate}}</label>
+			<button data-ng-click="openModalField('MSR3')"
+					title="{{msrFieldName[1]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[2].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[2].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[2]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="{{facetMergeConfig_HtmlTagsError[2]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text"
+					data-ng-model="widgetCreationObj.chart.facetMergeConfig[2].display"
+					maxlength="100" />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_LineTypeError[2]}}">
+			<label>{{'charts.LineStyle.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[2].lineType"  data-ng-options="item.key as item.value for item in lineTypeMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		<fieldset class="">
+			<label>{{'charts.roundType.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[2].roundType"
+					data-ng-options="item.key as item.value for item in roundTypeMap">
+				<option value="">{{'charts.roundnot'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="">
+			<label>{{'charts.roundNumberDigits.label'|translate}}</label>
+			<input type="number" data-ng-model="widgetCreationObj.chart.config.extraConfigFields[2].decimalPlaces" maxlength="9"  />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_YAxisError[2]}}">
+			<label>{{'charts.y-axis'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[2].yAxis"
+					data-ng-options="item.key as item.value for item in yAxisMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		
+		<p class="error" data-ng-if="!facetMergeConfig_dataModelSelectionError[2] && facetMergeConfig_FunctionError[2]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[2]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_HtmlTagsError[2]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_LineTypeError[2]"><i class="fa fa-times-circle"></i>{{'charts.measure.lineType.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_YAxisError[2]"><i class="fa fa-times-circle"></i>{{'charts.measure.yAxis.is.required'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[2]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+	</li>
+</ul>
+
+<!-- Measure(Y axis-Right)(Rate) -->
+<h4>{{'charts.measure'|translate}}({{'charts.y-axis'|translate}}) ({{'charts.y-rate'|translate}})</h4>
+<ul class="setting-xaxis">
+	<li>
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[3]}}">
+			<label>{{'charts.datamodel-selection'|translate}}({{'charts.numerator.label'|translate}})</label>
+      		<button data-ng-click="openModalDataModel('MSR4')" title="{{widgetCreationObj.chart.config.extraConfigFields[3].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[3].dataModelName}}</button>
+		</fieldset>
+	
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[3]}}">
+			<label>{{'charts.aggregateformula'|translate}}({{'charts.numerator.label'|translate}})</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[3].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[3].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[3].fields[0].aggFunction, 3);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[3]}}">
+			<label>{{'charts.fieldselection'|translate}}({{'charts.numerator.label'|translate}})</label>
+			<button data-ng-click="openModalField('MSR4')"
+					title="{{msrFieldName[3]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[3].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[3].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[3]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[4]}}">
+			<label>{{'charts.datamodel-selection'|translate}}({{'charts.denominator.label'|translate}})</label>
+      		<button data-ng-click="openModalDataModel('MSR5')" title="{{widgetCreationObj.chart.config.extraConfigFields[4].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[4].dataModelName}}</button>
+		</fieldset>
+
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[4]}}">
+			<label>{{'charts.aggregateformula'|translate}}({{'charts.denominator.label'|translate}})</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[4].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[4].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[4].fields[0].aggFunction, 4);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[4]}}">
+			<label>{{'charts.fieldselection'|translate}}({{'charts.denominator.label'|translate}})</label>
+			<button data-ng-click="openModalField('MSR5')"
+					title="{{msrFieldName[4]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[4].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[4].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[4]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="{{facetMergeConfig_HtmlTagsError[3]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text"
+					data-ng-model="widgetCreationObj.chart.facetMergeConfig[3].display"
+					maxlength="100" />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_LineTypeError[3]}}">
+			<label>{{'charts.LineStyle.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[3].lineType"  data-ng-options="item.key as item.value for item in lineTypeMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		<fieldset class="">
+			<label>{{'charts.roundType.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[3].roundType"
+					data-ng-options="item.key as item.value for item in roundTypeMap">
+				<option value="">{{'charts.roundnot'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="">
+			<label>{{'charts.roundNumberDigits.label'|translate}}</label>
+			<input type="number" data-ng-model="widgetCreationObj.chart.config.extraConfigFields[3].decimalPlaces" maxlength="9"  />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_YAxisError[3]}}">
+			<label>{{'charts.y-axis'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[3].yAxis"
+					data-ng-options="item.key as item.value for item in yAxisMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		
+		<p class="error" data-ng-if="facetMergeConfig_FunctionError[3]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[3]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_FunctionError[4]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[4]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+			
+		<p class="error" data-ng-if="facetMergeConfig_HtmlTagsError[3]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_LineTypeError[3]"><i class="fa fa-times-circle"></i>{{'charts.measure.lineType.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_YAxisError[3]"><i class="fa fa-times-circle"></i>{{'charts.measure.yAxis.is.required'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[3]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[4]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+
+	</li>
+</ul>
+<!-- Measure(Y axis-Right)(Ratio) -->
+
+<h4>{{'charts.measure'|translate}}({{'charts.y-axis'|translate}}) ({{'charts.y-ratio'|translate}})</h4>
+<ul class="setting-xaxis">
+	<li>
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[5]}}">
+			<label>{{'charts.datamodel-selection'|translate}}({{'charts.numerator.label'|translate}})</label>
+      		<button data-ng-click="openModalDataModel('MSR6')" title="{{widgetCreationObj.chart.config.extraConfigFields[5].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[5].dataModelName}}</button>
+		</fieldset>
+	
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[5]}}">
+			<label>{{'charts.aggregateformula'|translate}}({{'charts.numerator.label'|translate}})</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[5].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[5].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[5].fields[0].aggFunction, 5);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[5]}}">
+			<label>{{'charts.fieldselection'|translate}}({{'charts.numerator.label'|translate}})</label>
+			<button data-ng-click="openModalField('MSR6')"
+					title="{{msrFieldName[5]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[5].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[5].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[5]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="fieldselection {{facetMergeConfig_dataModelSelectionError[6]}}">
+			<label>{{'charts.datamodel-selection'|translate}}({{'charts.denominator.label'|translate}})</label>
+      		<button data-ng-click="openModalDataModel('MSR7')" title="{{widgetCreationObj.chart.config.extraConfigFields[6].dataModelName}}"  style="width:165px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+      			{{widgetCreationObj.chart.config.extraConfigFields[6].dataModelName}}</button>
+		</fieldset>
+
+		<fieldset class="measuretype {{facetMergeConfig_FunctionError[6]}}">
+			<label>{{'charts.aggregateformula'|translate}}({{'charts.denominator.label'|translate}})</label>
+			<select data-ng-model="widgetCreationObj.chart.facetMergeConfig[6].fields[0].aggFunction"
+					data-ng-options="key as value for (key , value) in data.aggrFunctions"
+					data-ng-disabled="!widgetCreationObj.chart.config.extraConfigFields[6].dataModelId"
+					data-ng-change="changeMuitiFieldFacetMergeAggFunc2(widgetCreationObj.chart.facetMergeConfig[6].fields[0].aggFunction, 6);">
+				<option value="">{{'charts.selectformula'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="fieldselection {{facetMergeConfig_FldError[6]}}">
+			<label>{{'charts.fieldselection'|translate}}({{'charts.denominator.label'|translate}})</label>
+			<button data-ng-click="openModalField('MSR7')"
+					title="{{msrFieldName[6]}}"
+					data-ng-disabled="!widgetCreationObj.chart.facetMergeConfig[6].fields[0].aggFunction || widgetCreationObj.chart.facetMergeConfig[6].fields[0].aggFunction== 'count'"
+					style="width:135px; height:27px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+				{{msrFieldName[6]}}
+			</button>
+		</fieldset>
+
+		<fieldset class="{{facetMergeConfig_HtmlTagsError[5]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text"
+					data-ng-model="widgetCreationObj.chart.facetMergeConfig[5].display"
+					maxlength="100" />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_LineTypeError[5]}}">
+			<label>{{'charts.LineStyle.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[5].lineType"  data-ng-options="item.key as item.value for item in lineTypeMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		<fieldset class="">
+			<label>{{'charts.roundType.label'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[5].roundType"
+					data-ng-options="item.key as item.value for item in roundTypeMap">
+				<option value="">{{'charts.roundnot'|translate}}</option>
+			</select>
+		</fieldset>
+		<fieldset class="">
+			<label>{{'charts.roundNumberDigits.label'|translate}}</label>
+			<input type="number" data-ng-model="widgetCreationObj.chart.config.extraConfigFields[5].decimalPlaces" maxlength="9"  />
+		</fieldset>
+		
+		<fieldset class="{{facetMergeConfig_YAxisError[5]}}">
+			<label>{{'charts.y-axis'|translate}}</label>
+			<select data-ng-model="widgetCreationObj.chart.config.extraConfigFields[5].yAxis"
+					data-ng-options="item.key as item.value for item in yAxisMap">
+				<option value="">{{'charts.Select'|translate}}</option>
+			</select>
+		</fieldset>
+		
+		
+		<p class="error" data-ng-if="facetMergeConfig_FunctionError[5]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[5]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_FunctionError[6]"><i class="fa fa-times-circle"></i>{{'charts.aggregateformula.is.required.'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_FldError[6]"><i class="fa fa-times-circle"></i>{{'charts.measure.field.is.required..'|translate}}</p>
+			
+		<p class="error" data-ng-if="facetMergeConfig_HtmlTagsError[5]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_LineTypeError[5]"><i class="fa fa-times-circle"></i>{{'charts.measure.lineType.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_YAxisError[5]"><i class="fa fa-times-circle"></i>{{'charts.measure.yAxis.is.required'|translate}}</p>
+		
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[5]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+		<p class="error" data-ng-if="facetMergeConfig_dataModelSelectionError[6]"><i class="fa fa-times-circle"></i>{{'charts.measure.datamodel.is.required'|translate}}</p>
+
+	</li>
+</ul>
+
+<!-- Measure(y-asis-setting) -->
+<h4>{{'charts.y-asis-setting'|translate}}</h4>
+<ul class="setting-xaxis">
+	<li>
+		<fieldset style="display: inline-block;margin-right: 1em;">
+	    	{{'charts.y-axis-left'|translate}}
+	  	</fieldset>
+		<fieldset class="{{yAsisSettingConfig_HtmlTagsError[0]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[0].dataModelDispVal" maxlength="40" />
+		</fieldset>	
+		
+		<fieldset>
+			<label>{{'charts.y-axis-left.percentDisplay.label'|translate}}</label>
+			<div class="checkBox">
+				<input type="checkbox" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[0].percentDisplay" data-ng-true-value="true" data-ng-false-value="false"/> 
+					<span>{{'charts.y-axis-left.percentDisplay.text'|translate}}</span>
+			</div>
+		</fieldset>
+		
+		<fieldset class="{{yAsisSettingConfig_MinError[0]}}">
+			<label>{{'charts.min_value'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[0].minCount" maxlength="100" />
+		</fieldset>
+		<fieldset class="{{yAsisSettingConfig_MaxError[0]}}">
+			<label>{{'charts.max_value'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[0].maxCount" maxlength="100" />
+		</fieldset>
+		
+		<p class="error" data-ng-if="yAsisSettingConfig_MinError[0]"><i class="fa fa-times-circle"></i>{{'charts.invalid_min'|translate}}</p>
+		<p class="error" data-ng-if="yAsisSettingConfig_MaxError[0]"><i class="fa fa-times-circle"></i>{{'charts.invalid_max'|translate}}</p>
+		<p class="error" data-ng-if="yAsisSettingConfig_HtmlTagsError[0]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+	
+	</li>
+</ul>
+<ul class="setting-xaxis">
+	<li>
+		<fieldset style="display: inline-block;margin-right: 1em;">
+	    	{{'charts.y-axis-right'|translate}}
+	  	</fieldset>
+		<fieldset class="{{yAsisSettingConfig_HtmlTagsError[1]}}">
+			<label>{{'charts.fieldname'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[1].dataModelDispVal" maxlength="40" />
+		</fieldset>	
+		
+		<fieldset>
+			<label>{{'charts.y-axis-left.percentDisplay.label'|translate}}</label>
+			<div class="checkBox">
+				<input type="checkbox" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[1].percentDisplay" data-ng-true-value="true" data-ng-false-value="false"/> 
+					<span>{{'charts.y-axis-left.percentDisplay.text'|translate}}</span>
+			</div>
+		</fieldset>
+		
+		<fieldset class="{{yAsisSettingConfig_MinError[1]}}">
+			<label>{{'charts.min_value'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[1].minCount" maxlength="100" />
+		</fieldset>
+		<fieldset class="{{yAsisSettingConfig_MaxError[1]}}">
+			<label>{{'charts.max_value'|translate}}</label>
+			<input type="text" data-ng-model="widgetCreationObj.chart.config.extraConfigYAxis[1].maxCount" maxlength="100" />
+		</fieldset>
+		
+		<p class="error" data-ng-if="yAsisSettingConfig_MinError[1]"><i class="fa fa-times-circle"></i>{{'charts.invalid_min'|translate}}</p>
+		<p class="error" data-ng-if="yAsisSettingConfig_MaxError[1]"><i class="fa fa-times-circle"></i>{{'charts.invalid_max'|translate}}</p>
+		<p class="error" data-ng-if="yAsisSettingConfig_HtmlTagsError[1]"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.fldContainsHtmlTags'|translate}}</p>
+	
+	</li>
+</ul>
+
+<div class="setting-datachain" data-ng-show="showDataChain">
+	<h4>{{'datachain'|translate}}({{'charts.x-axis'|translate}})</h4>
+	<ul class="">
+		<li>
+			<fieldset class="{{dataChainError}}">
+		    	<label>{{'charts.targetdashboard'|translate}}</label>
+		    	<select class="targetDashboard" data-ng-model="selectedDataChainModel"
+		    			data-ng-change="selectDataChainPage(selectedDataChainModel);" data-ng-options="item.pageId as item.pageName for item in dataChainPageList | filter:dataChainPageList.isInaccessibleDM==true">
+		    		<option value="">{{'charts.selectpage'|translate}}</option>
+		    	</select>
+		  	</fieldset>
+		  	<p class="error" data-ng-if="dataChainError"><i class="fa fa-times-circle"></i>{{'dashboard.validationMsg.targetPage'|translate}}</p>
+	  	</li>
+	</ul>
+</div>
