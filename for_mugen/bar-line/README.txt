@@ -20,6 +20,8 @@ thì văng exception khi NULL nên cần sửa như sau:
 
 THAM KHẢO file TripleDataModelChartDataController.java để sửa cho ResultAndRateChartDataController.java, MovingAverageChartDataController.java
 
+Lưu ý khi test: 3 datamodel thì phải tồn tại key (mà đã chọn ở trục X) để JOIN.
+(Xem QA)
 
 Files:
 
@@ -34,3 +36,5 @@ Files:
 /insight-web/src/main/webapp/js/controllers/hcharts/TripleDataModelChartCtrl.js
 
 /insight-web/src/main/webapp/js/controllers/TripleDataModelChartConfigCtrl.js
+
+/insight-web/src/main/webapp/js/controllers/widgetCreationCtrl.js
